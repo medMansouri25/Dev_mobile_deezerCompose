@@ -13,5 +13,6 @@ data class ResponseSearchArtistAlbums(
 data class Album(
     val id: Long,
     val title: String,
-    val cover_medium: String? = null
+    val cover_medium: String? = null,
+    val cover_large: String? = null
 )

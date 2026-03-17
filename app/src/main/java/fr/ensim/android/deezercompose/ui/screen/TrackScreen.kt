@@ -1,6 +1,5 @@
 package fr.ensim.android.deezercompose.ui.screen
 
-import android.media.MediaPlayer
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -17,18 +16,11 @@ import fr.ensim.android.deezercompose.viewmodel.DeezerViewModel
 @Composable
 fun TrackScreen(
     albumId: String,
-    viewModel: DeezerViewModel
+    viewModel: DeezerViewModel,
+    onTrackClick: (String) -> Unit = {}
 ) {
     val tracks by viewModel.tracksState.collectAsState()
     val albumTitle by viewModel.albumTitleState.collectAsState()
-    var currentPlayer by remember { mutableStateOf<MediaPlayer?>(null) }
-    var playingTrackId by remember { mutableStateOf<Long?>(null) }
-
-    DisposableEffect(Unit) {
-        onDispose {
-            currentPlayer?.release()
-        }
-    }
 
     LaunchedEffect(albumId) {
         viewModel.searchAlbum(albumId)
@@ -48,29 +40,7 @@ fun TrackScreen(
             items(tracks) { track ->
                 TrackItem(
                     track = track,
-                    isPlaying = playingTrackId == track.id,
-                    onPlayClick = {
-                        if (playingTrackId == track.id) {
-                            currentPlayer?.release()
-                            currentPlayer = null
-                            playingTrackId = null
-                        } else {
-                            currentPlayer?.release()
-                            track.preview?.let { url ->
-                                val player = MediaPlayer()
-                                player.setDataSource(url)
-                                player.prepareAsync()
-                                player.setOnPreparedListener { it.start() }
-                                player.setOnCompletionListener {
-                                    playingTrackId = null
-                                    it.release()
-                                    currentPlayer = null
-                                }
-                                currentPlayer = player
-                                playingTrackId = track.id
-                            }
-                        }
-                    }
+                    onPlayClick = { onTrackClick(track.id.toString()) }
                 )
             }
         }
@@ -80,7 +50,6 @@ fun TrackScreen(
 @Composable
 fun TrackItem(
     track: Track,
-    isPlaying: Boolean,
     onPlayClick: () -> Unit
 ) {
     Row(
@@ -92,9 +61,8 @@ fun TrackItem(
         IconButton(onClick = onPlayClick) {
             Icon(
                 imageVector = Icons.Default.PlayArrow,
-                contentDescription = if (isPlaying) "Pause" else "Play",
-                tint = if (isPlaying) MaterialTheme.colorScheme.error
-                else MaterialTheme.colorScheme.primary
+                contentDescription = "Play",
+                tint = MaterialTheme.colorScheme.primary
             )
         }
         Spacer(modifier = Modifier.width(12.dp))
