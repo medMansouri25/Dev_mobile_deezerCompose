@@ -27,8 +27,8 @@ import androidx.compose.foundation.layout.systemBarsPadding
 
 sealed class Screen(val route: String) {
     object Search : Screen("search")
-    object Albums : Screen("albums/{artistId}") {
-        fun createRoute(artistId: String) = "albums/$artistId"
+    object Albums : Screen("albums/{artistId}/{artistName}") {
+        fun createRoute(artistId: String, artistName: String) = "albums/$artistId/$artistName"
     }
     object Tracks : Screen("tracks/{albumId}") {
         fun createRoute(albumId: String) = "tracks/$albumId"
@@ -62,6 +62,7 @@ class MainActivity : ComponentActivity() {
                                 NavigationBarItem(
                                     selected = currentRoute == Screen.Search.route,
                                     onClick = {
+                                        viewModel.clearSearch()
                                         navController.navigate(Screen.Search.route) {
                                             popUpTo(Screen.Search.route) { inclusive = true }
                                         }
@@ -108,8 +109,8 @@ fun DeezerNavHost(
         composable(Screen.Search.route) {
             SearchArtistScreen(
                 viewModel = viewModel,
-                onArtistClick = { artistId ->
-                    navController.navigate(Screen.Albums.createRoute(artistId))
+                onArtistClick = { artistId, artistName ->
+                    navController.navigate(Screen.Albums.createRoute(artistId, artistName))
                 },
                 onAlbumClick = { albumId ->
                     navController.navigate(Screen.Tracks.createRoute(albumId))
@@ -123,11 +124,16 @@ fun DeezerNavHost(
 
         composable(
             route = Screen.Albums.route,
-            arguments = listOf(navArgument("artistId") { type = NavType.StringType })
+            arguments = listOf(
+                navArgument("artistId") { type = NavType.StringType },
+                navArgument("artistName") { type = NavType.StringType }
+            )
         ) { backStackEntry ->
             val artistId = backStackEntry.arguments?.getString("artistId") ?: return@composable
+            val artistName = backStackEntry.arguments?.getString("artistName") ?: ""
             AlbumScreen(
                 artistId = artistId,
+                artistName = artistName,
                 viewModel = viewModel,
                 onAlbumClick = { albumId ->
                     navController.navigate(Screen.Tracks.createRoute(albumId))

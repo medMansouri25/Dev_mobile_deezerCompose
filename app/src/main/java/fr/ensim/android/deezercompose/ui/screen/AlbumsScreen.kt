@@ -14,11 +14,13 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Card
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
@@ -28,6 +30,7 @@ import fr.ensim.android.deezercompose.viewmodel.DeezerViewModel
 @Composable
 fun AlbumScreen(
     artistId: String,
+    artistName: String,
     viewModel: DeezerViewModel,
     onAlbumClick: (String) -> Unit = {}
 ) {
@@ -37,17 +40,27 @@ fun AlbumScreen(
         viewModel.searchArtistAlbums(artistId)
     }
 
-    LazyColumn(
+    Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+            .padding(16.dp)
     ) {
-        items(albums) { album ->
-            AlbumItem(
-                album = album,
-                onClick = { onAlbumClick(album.id.toString()) }
-            )
+        Text(
+            text = "Albums de $artistName",
+            style = MaterialTheme.typography.headlineSmall
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        LazyColumn(
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            items(albums) { album ->
+                AlbumItem(
+                    album = album,
+                    onClick = { onAlbumClick(album.id.toString()) }
+                )
+            }
         }
     }
 }
@@ -63,7 +76,8 @@ fun AlbumItem(
             .clickable { onClick() }
     ) {
         Row(
-            modifier = Modifier.padding(12.dp)
+            modifier = Modifier.padding(12.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
             Image(
                 painter = rememberAsyncImagePainter(album.cover_medium),
@@ -74,7 +88,15 @@ fun AlbumItem(
             Spacer(modifier = Modifier.size(12.dp))
 
             Column {
-                Text(text = album.title)
+                Text(
+                    text = album.title,
+                    style = MaterialTheme.typography.titleMedium
+                )
+                Text(
+                    text = "Album",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
         }
     }

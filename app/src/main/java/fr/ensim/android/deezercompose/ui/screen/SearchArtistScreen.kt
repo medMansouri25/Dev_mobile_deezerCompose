@@ -36,7 +36,7 @@ import fr.ensim.android.deezercompose.viewmodel.DeezerViewModel
 @Composable
 fun SearchArtistScreen(
     viewModel: DeezerViewModel,
-    onArtistClick: (String) -> Unit = {},
+    onArtistClick: (String, String) -> Unit = { _, _ -> },
     onAlbumClick: (String) -> Unit = {}
 ) {
     var query by remember { mutableStateOf("") }
@@ -78,7 +78,7 @@ fun SearchArtistScreen(
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 items(artists) { artist ->
-                    ArtistItem(artist = artist, onClick = { onArtistClick(artist.id.toString()) })
+                    ArtistItem(artist = artist, onClick = { onArtistClick(artist.id.toString(), artist.name) })
                 }
             }
         }

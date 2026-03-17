@@ -5,9 +5,10 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.SkipPrevious
@@ -17,13 +18,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
 import fr.ensim.android.deezercompose.viewmodel.DeezerViewModel
 import kotlinx.coroutines.delay
-import androidx.compose.material.icons.filled.Pause
 
 @Composable
 fun PlayerScreen(
@@ -73,10 +72,14 @@ fun PlayerScreen(
 
     LaunchedEffect(isPlaying) {
         while (isPlaying) {
-            mediaPlayer?.let {
-                if (it.isPlaying) {
-                    currentPosition = it.currentPosition.toFloat()
+            try {
+                mediaPlayer?.let {
+                    if (it.isPlaying) {
+                        currentPosition = it.currentPosition.toFloat()
+                    }
                 }
+            } catch (e: IllegalStateException) {
+                break
             }
             delay(500)
         }
@@ -94,7 +97,6 @@ fun PlayerScreen(
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Barre du haut : retour + coeur
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -104,7 +106,7 @@ fun PlayerScreen(
                 mediaPlayer?.release()
                 onBack()
             }) {
-                Icon(Icons.Default.ArrowBack, contentDescription = "Retour")
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Retour")
             }
 
             track?.let { currentTrack ->
@@ -124,7 +126,6 @@ fun PlayerScreen(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Image album
         Image(
             painter = rememberAsyncImagePainter(albumCover),
             contentDescription = albumTitle,
@@ -136,7 +137,6 @@ fun PlayerScreen(
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        // Titre du morceau + album
         track?.let {
             Text(
                 text = it.title,
@@ -154,14 +154,17 @@ fun PlayerScreen(
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        // Barre de progression
         Slider(
             value = if (duration > 0) currentPosition / duration else 0f,
             onValueChange = { newValue ->
-                mediaPlayer?.let {
-                    val newPosition = (newValue * it.duration).toInt()
-                    it.seekTo(newPosition)
-                    currentPosition = newPosition.toFloat()
+                try {
+                    mediaPlayer?.let {
+                        val newPosition = (newValue * it.duration).toInt()
+                        it.seekTo(newPosition)
+                        currentPosition = newPosition.toFloat()
+                    }
+                } catch (e: IllegalStateException) {
+                    // Player déjà releasé
                 }
             },
             modifier = Modifier.fillMaxWidth()
@@ -183,13 +186,11 @@ fun PlayerScreen(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Boutons de contrôle : précédent, play/pause, suivant
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Précédent
             IconButton(
                 onClick = {
                     val prev = viewModel.previousTrack()
@@ -204,15 +205,18 @@ fun PlayerScreen(
                 )
             }
 
-            // Play / Pause
             IconButton(
                 onClick = {
-                    if (isPlaying) {
-                        mediaPlayer?.pause()
-                        isPlaying = false
-                    } else {
-                        mediaPlayer?.start()
-                        isPlaying = true
+                    try {
+                        if (isPlaying) {
+                            mediaPlayer?.pause()
+                            isPlaying = false
+                        } else {
+                            mediaPlayer?.start()
+                            isPlaying = true
+                        }
+                    } catch (e: IllegalStateException) {
+                        // Player déjà releasé
                     }
                 },
                 modifier = Modifier.size(72.dp)
@@ -226,8 +230,6 @@ fun PlayerScreen(
                 )
             }
 
-
-            // Suivant
             IconButton(
                 onClick = {
                     val next = viewModel.nextTrack()

@@ -8,14 +8,13 @@ import kotlinx.serialization.json.JsonIgnoreUnknownKeys
 data class ResponseSearchAlbum(
     val id: Long,
     val title: String,
-    val tracks: Tracks,
     val cover_medium: String? = null,
+    val tracks: Tracks
 )
 
 @Serializable
 data class Tracks(
     val data: List<Track>
-
 )
 
 @Serializable

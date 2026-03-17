@@ -28,6 +28,10 @@ class DeezerViewModel : ViewModel() {
             }
         }
     }
+    fun clearSearch() {
+        _artistsState.value = emptyList()
+    }
+
 
     // Albums
     private val _albumsState = MutableStateFlow<List<Album>>(emptyList())
